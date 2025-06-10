@@ -7,7 +7,7 @@
     <div class="sidebar">
         <div class="user-panel mt-3 pb-3 mb-3 d-flex">
             <div class="image">
-                <img src="{{ asset('dist/img/user2-160x160.jpg') }}" class="img-circle elevation-2" alt="User Image">
+                <img src="{{ asset('img/user.png') }}" class="img-circle elevation-2" alt="User Image">
             </div>
             <div class="info">
                 <a href="#" class="d-block">{{ strtoupper(Auth::user()->nama) }}</a>
@@ -65,15 +65,15 @@
                             </a>
                         </li>
                     </ul>
-                    {{-- <ul class="nav nav-treeview">
+                    <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ route('admin.subkriterias.index') }}"
-                                class="nav-link {{ Request::routeIs('admin.subkriterias.index') ? 'active' : '' }}">
+                            <a href="{{ route('admin.sub-kriterias.index') }}"
+                                class="nav-link {{ Request::routeIs('admin.sub-kriterias.index') ? 'active' : '' }}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Sub Kriteria</p>
                             </a>
                         </li>
-                    </ul> --}}
+                    </ul>
                 </li>
             </ul>
         </nav>

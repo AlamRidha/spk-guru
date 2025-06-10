@@ -1,5 +1,7 @@
 @extends('layouts.admin')
 
+@section('title', $title)
+
 @section('scripts')
     @parent
     @stack('scripts')
