@@ -7,15 +7,41 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        if ($request->ajax()) {
+            $users = User::where('role', '!=', 'guru');
+
+            return DataTables::of($users)
+                ->addIndexColumn()
+                ->addColumn('action', function ($user) {
+                    $userData = htmlspecialchars(json_encode([
+                        'id' => $user->id,
+                        'nama' => $user->nama,
+                        'email' => $user->email,
+                        'role' => $user->role,
+                    ]));
+
+                    return '<button class="btn btn-sm btn-warning btn-edit" data-user="' . $userData . '">Edit</button>
+                <form action="' . route('admin.users.destroy', $user->id) . '" method="POST" style="display:inline;">
+                    ' . csrf_field() . method_field('DELETE') . '
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm(\'Yakin hapus user?\')">Hapus</button>
+                </form>';
+                })
+
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+
         return view('admin.users.index', [
-            'users' => User::where('role', '!=', 'guru')->get()
+            'title' => 'Manajemen User',
         ]);
     }
+
 
     // create function
     public function create()
@@ -33,11 +59,10 @@ class UserController extends Controller
         // Validasi input
         $validatedData = $request->validate([
             'nama' => 'required|string|max:255',
-            'email' => 'required|email|unique:users', // Pastikan email unik di tabel users
-            'role' => ['required', Rule::in(['admin', 'kepsek'])], // Role hanya boleh admin atau kepsek
-            'password' => 'required|string|min:8|confirmed', // Password minimal 8 karakter dan harus dikonfirmasi
+            'email' => 'required|email|unique:users',
+            'role' => ['required', Rule::in(['admin', 'kepsek'])],
+            'password' => 'required|string|min:8|confirmed',
         ], [
-            // Custom error messages (opsional)
             'nama.required' => 'Nama wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.email' => 'Format email tidak valid.',
@@ -51,13 +76,12 @@ class UserController extends Controller
 
         // Buat user baru
         User::create([
-            'nama' => $validatedData['nama'],
+            'nama' => $request->nama,
             'email' => $validatedData['email'],
             'role' => $validatedData['role'],
-            'password' => Hash::make($validatedData['password']), // Hash password sebelum disimpan
+            'password' => Hash::make($validatedData['password']),
         ]);
 
-        // Redirect dengan pesan sukses
         return redirect()->route('admin.users.index')->with('toast_success', 'User berhasil ditambahkan!');
     }
 
@@ -82,42 +106,29 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        // Pastikan user yang diperbarui bukan 'guru'
-        if ($user->role == 'guru') {
-            abort(403, 'Akses ditolak. Anda tidak bisa memperbarui user dengan peran guru.');
+        $rules = [
+            'nama' => 'required|string|max:255',
+            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
+            'role' => ['required', Rule::in(['admin', 'kepsek'])],
+        ];
+
+        if ($request->filled('password')) {
+            $rules['password'] = 'string|min:8|confirmed';
         }
 
-        // Validasi input
-        $validatedData = $request->validate([
-            'nama' => 'required|string|max:255',
-            // Email harus unik kecuali untuk user yang sedang diedit
-            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
-            'role' => ['required', Rule::in(['admin', 'kepsek'])], // Role hanya boleh admin atau kepsek
-            'password' => 'nullable|string|min:8|confirmed', // Password opsional, jika diisi harus minimal 8 karakter dan dikonfirmasi
-        ], [
-            'nama.required' => 'Nama wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'email.unique' => 'Email ini sudah terdaftar.',
-            'role.required' => 'Peran (role) wajib dipilih.',
-            'role.in' => 'Peran yang dipilih tidak valid.',
-            'password.min' => 'Password minimal 8 karakter.',
-            'password.confirmed' => 'Konfirmasi password tidak cocok.',
-        ]);
+        $validatedData = $request->validate($rules);
 
-        // Update data user
-        $user->nama = $validatedData['nama'];
+        // Update data
+        $user->nama = $request->nama;
         $user->email = $validatedData['email'];
         $user->role = $validatedData['role'];
 
-        // Jika password diisi, hash dan update
         if ($request->filled('password')) {
             $user->password = Hash::make($validatedData['password']);
         }
 
         $user->save();
 
-        // Redirect dengan pesan sukses
         return redirect()->route('admin.users.index')->with('toast_success', 'User berhasil diperbarui!');
     }
 

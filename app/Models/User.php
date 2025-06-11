@@ -52,8 +52,8 @@ class User extends Authenticatable
         ];
     }
 
-    public function setNamaAttribute($value)
-    {
-        $this->attributes['nama'] = ucwords(strtolower($value));
-    }
+    // public function setNamaAttribute($value)
+    // {
+    //     $this->attributes['nama'] = ucwords(strtolower($value));
+    // }
 }
