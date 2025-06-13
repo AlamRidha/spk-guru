@@ -15,6 +15,8 @@ Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard'
 
 // User Management
 Route::resource('users', UserController::class)->except(['show']);
+Route::resource('gurus', GuruController::class);
+
 
 // Data Master
 Route::get('kriterias/all', [KriteriaController::class, 'getAll'])->name('kriterias.all');
@@ -22,10 +24,9 @@ Route::resource('kriterias', KriteriaController::class);
 Route::get('dashboard/normalized-weights', [DashboardController::class, 'getNormalizedWeights'])
     ->name('dashboard.normalized-weights');
 
-
-
-Route::resource('sub-kriterias', SubKriteriaController::class);
-Route::resource('gurus', GuruController::class);
+Route::resource('sub-kriterias', SubKriteriaController::class)->except(['show']);
+Route::get('sub-kriterias/{kriteria}/by-kriteria', [SubKriteriaController::class, 'getByKriteria'])
+    ->name('admin.sub-kriterias.by-kriteria');
 
 // MOORA Calculation
 Route::post('calculate-moora', [DashboardController::class, 'calculateMoora'])
