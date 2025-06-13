@@ -140,7 +140,7 @@
 
             function updateNormalizedTable() {
                 $.ajax({
-                    url: '{{ route('admin.kriterias.all') }}', // Sesuaikan dengan nama route yang benar
+                    url: '{{ route('admin.dashboard.normalized-weights') }}', // Sesuaikan dengan nama route yang benar
                     type: 'GET',
                     success: function(data) {
                         const totalBobot = data.reduce((acc, item) => acc + parseFloat(item.bobot), 0);
@@ -149,9 +149,8 @@
                             return {
                                 kode: 'C' + (index + 1),
                                 nama: item.nama,
-                                bobot_asli: parseFloat(item.bobot).toFixed(5),
-                                bobot_normalisasi: totalBobot > 0 ?
-                                    (parseFloat(item.bobot) / totalBobot).toFixed(5) : '0.00000'
+                                bobot_asli: item.bobot_asli,
+                                bobot_normalisasi: item.bobot_normalisasi
                             };
                         });
 

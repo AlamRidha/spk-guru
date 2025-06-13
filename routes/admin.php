@@ -19,6 +19,11 @@ Route::resource('users', UserController::class)->except(['show']);
 // Data Master
 Route::get('kriterias/all', [KriteriaController::class, 'getAll'])->name('kriterias.all');
 Route::resource('kriterias', KriteriaController::class);
+Route::get('dashboard/normalized-weights', [DashboardController::class, 'getNormalizedWeights'])
+    ->name('dashboard.normalized-weights');
+
+
+
 Route::resource('sub-kriterias', SubKriteriaController::class);
 Route::resource('gurus', GuruController::class);
 

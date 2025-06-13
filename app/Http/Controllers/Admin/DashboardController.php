@@ -24,19 +24,20 @@ class DashboardController extends Controller
     }
 
 
-    /**
-     * Hitung MOORA
-     */
-    // public function calculateMoora(MooraService $moora)
-    // {
-    //     try {
-    //         $hasil = $moora->hitungOptimasi();
+    public function getNormalizedWeights()
+    {
+        $kriterias = Kriteria::select('id', 'nama', 'bobot')->get();
+        $totalBobot = $kriterias->sum('bobot');
 
-    //         Alert::success('Berhasil', 'Perhitungan MOORA selesai!');
-    //         return back()->with('hasil', $hasil);
-    //     } catch (\Exception $e) {
-    //         Alert::error('Error', $e->getMessage());
-    //         return back();
-    //     }
-    // }
+        $normalized = $kriterias->map(function ($kriteria, $index) use ($totalBobot) {
+            return [
+                'kode' => 'C' . ($index + 1),
+                'nama' => $kriteria->nama,
+                'bobot_asli' => (float)$kriteria->bobot,
+                'bobot_normalisasi' => $totalBobot > 0 ? (float)$kriteria->bobot / $totalBobot : '0.00000'
+            ];
+        });
+
+        return response()->json($normalized);
+    }
 }
