@@ -10,3 +10,6 @@
 <!-- OverlayScrollbars -->
 <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.13.1/css/OverlayScrollbars.min.css">
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />

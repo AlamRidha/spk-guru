@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Guru;
 use App\Models\Hasil;
 use App\Models\Kriteria;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -16,6 +17,7 @@ class DashboardController extends Controller
             'title' => 'Dashboard',
             'totalGuru' => Guru::count(),
             'totalKriteria' => Kriteria::count(),
+            'totalUser' => User::count(),
             'recentHasil' => Hasil::with('guru')
                 ->orderBy('ranking', 'asc')
                 ->limit(5)
