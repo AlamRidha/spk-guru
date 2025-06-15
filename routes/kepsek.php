@@ -2,17 +2,19 @@
 
 use App\Http\Controllers\Kepsek\{
     DashboardController,
+    GuruController,
     PenilaianController
 };
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('kepsek')->name('kepsek.')->group(function () {
-    // Dashboard
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// Dashboard
+Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Penilaian
-    Route::resource('penilaians', PenilaianController::class)->only(['index', 'store']);
+// Halaman guru
+Route::resource('gurus', GuruController::class);
 
-    // Hasil
-    Route::get('hasil', [DashboardController::class, 'hasil'])->name('hasil');
-});
+// Penilaian
+Route::resource('penilaians', PenilaianController::class)->only(['index', 'store']);
+
+// Hasil
+Route::get('hasil', [DashboardController::class, 'hasil'])->name('hasil');
