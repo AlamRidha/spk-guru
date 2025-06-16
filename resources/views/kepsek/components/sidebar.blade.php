@@ -41,14 +41,23 @@
                         </li>
                     </ul>
                 </li>
-                <li class="nav-item has-treeview {{ Request::routeIs('kepsek.kriterias.*') ? 'menu-open' : '' }}">
-                    <a href="#" class="nav-link {{ Request::routeIs('kepsek.kriterias.*') ? 'active' : '' }}">
+                <li class="nav-item has-treeview {{ Request::routeIs('kepsek.penilaians.*') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link {{ Request::routeIs('kepsek.penilaians.*') ? 'active' : '' }}">
                         <i class="nav-icon fas fa-th-list"></i>
                         <p>
-                            Penilaian Guru
+                            Penilaian & Ranking Guru
                             <i class="right fas fa-angle-left"></i>
                         </p>
                     </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('kepsek.penilaians.index') }}"
+                                class="nav-link {{ Request::routeIs('kepsek.penilaians.index') ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Penilaian Guru</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
             </ul>
         </nav>
