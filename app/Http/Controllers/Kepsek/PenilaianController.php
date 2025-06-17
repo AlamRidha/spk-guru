@@ -114,10 +114,14 @@ class PenilaianController extends Controller
     {
         $request->validate(['guru_id' => 'required|exists:gurus,id']);
 
-        Penilaian::where('user_id', Auth::id())
+        $deleted = Penilaian::where('user_id', Auth::id())
             ->where('guru_id', $request->guru_id)
             ->delete();
 
-        return response()->json(['message' => 'Penilaian berhasil dihapus']);
+        if ($deleted) {
+            return response()->json(['message' => 'Penilaian berhasil dihapus']);
+        }
+
+        return response()->json(['message' => 'Gagal menghapus penilaian'], 500);
     }
 }

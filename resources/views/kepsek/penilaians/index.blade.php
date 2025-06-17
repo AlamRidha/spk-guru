@@ -72,6 +72,11 @@
     <script>
         $(function() {
             $(function() {
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
                 const table = $('#penilaian-table').DataTable({
                     processing: true,
                     serverSide: true,
@@ -157,14 +162,25 @@
                         url: url,
                         type: 'POST',
                         data: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
                         success: res => {
                             $('#modal-nilai').modal('hide');
                             table.ajax.reload();
                             Swal.fire('Berhasil', res.message, 'success');
                         },
                         error: err => {
-                            Swal.fire('Gagal', err.responseJSON.message ||
-                                'Terjadi kesalahan saat menyimpan data', 'error');
+                            if (err.status === 419) {
+                                Swal.fire('Gagal',
+                                    'Session expired. Please refresh the page.',
+                                    'error');
+                                window.location.reload();
+                            } else {
+                                Swal.fire('Gagal', err.responseJSON.message ||
+                                    'Terjadi kesalahan saat menyimpan data', 'error'
+                                );
+                            }
                         }
                     });
                 });
@@ -197,9 +213,13 @@
                                         'success');
                                 },
                                 error: err => {
-                                    Swal.fire('Gagal',
+                                    console.log(err); // Log error to console
+                                    Swal.fire(
+                                        'Gagal',
+                                        err.responseJSON?.message ||
                                         'Terjadi kesalahan saat menghapus data',
-                                        'error');
+                                        'error'
+                                    );
                                 }
                             });
                         }

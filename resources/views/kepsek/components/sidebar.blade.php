@@ -18,13 +18,16 @@
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
                 data-accordion="false">
                 <li class="nav-item">
-                    <a href="{{ route('kepsek.dashboard') }}" class="nav-link">
+                    <a href="{{ route('kepsek.dashboard') }}"
+                        class="nav-link {{ Request::routeIs('kepsek.dashboard') ? 'active' : '' }}">
                         <i class="nav-icon fas fa-tachometer-alt"></i>
                         <p>Dashboard</p>
                     </a>
                 </li>
-                <li class="nav-item has-treeview">
-                    <a href="#" class="nav-link">
+
+                <!-- Menu Guru -->
+                <li class="nav-item {{ Request::routeIs('kepsek.gurus.*') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link {{ Request::routeIs('kepsek.gurus.*') ? 'active' : '' }}">
                         <i class="nav-icon fas fa-users"></i>
                         <p>
                             Daftar Guru
@@ -34,18 +37,20 @@
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
                             <a href="{{ route('kepsek.gurus.index') }}"
-                                class="nav-link {{ Request::routeIs('kepsek.gurus.*') ? 'active' : '' }}">
+                                class="nav-link {{ Request::routeIs('kepsek.gurus.index') ? 'active' : '' }}">
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>Guru</p>
+                                <p>Data Guru</p>
                             </a>
                         </li>
                     </ul>
                 </li>
-                <li class="nav-item has-treeview {{ Request::routeIs('kepsek.penilaians.*') ? 'menu-open' : '' }}">
+
+                <!-- Menu Penilaian -->
+                <li class="nav-item {{ Request::routeIs('kepsek.penilaians.*') ? 'menu-open' : '' }}">
                     <a href="#" class="nav-link {{ Request::routeIs('kepsek.penilaians.*') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-th-list"></i>
+                        <i class="nav-icon fas fa-edit"></i>
                         <p>
-                            Penilaian & Ranking Guru
+                            Penilaian
                             <i class="right fas fa-angle-left"></i>
                         </p>
                     </a>
@@ -54,7 +59,27 @@
                             <a href="{{ route('kepsek.penilaians.index') }}"
                                 class="nav-link {{ Request::routeIs('kepsek.penilaians.index') ? 'active' : '' }}">
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>Penilaian Guru</p>
+                                <p>Input Penilaian</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Menu Hasil -->
+                <li class="nav-item {{ Request::routeIs('kepsek.hasil.*') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link {{ Request::routeIs('kepsek.hasil.*') ? 'active' : '' }}">
+                        <i class="nav-icon fas fa-chart-bar"></i>
+                        <p>
+                            Hasil Analisis
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('kepsek.hasils.index') }}"
+                                class="nav-link {{ Request::routeIs('kepsek.hasils.index') ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Ranking Guru</p>
                             </a>
                         </li>
                     </ul>
