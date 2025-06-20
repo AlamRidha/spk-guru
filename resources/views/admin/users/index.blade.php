@@ -2,40 +2,37 @@
 
 @section('title', $title)
 
-<style>
-    .text-danger {
-        font-size: 0.875em;
-        margin-top: 0.25rem;
-    }
+@push('styles')
+    <style>
+        .swal2-popup {
+            font-size: 1.6rem !important;
+        }
 
-    .is-invalid {
-        border-color: #dc3545;
-    }
-
-    .form-group {
-        margin-bottom: 1.25rem;
-    }
-</style>
+        .password-field {
+            display: block;
+            /* Default show */
+        }
+    </style>
+@endpush
 
 @section('content')
     <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="h3">{{ $title }}</h1>
-            <button class="btn btn-primary" id="btn-create-user">
-                <i class="fas fa-plus"></i> Tambah User
-            </button>
-        </div>
-
         <div class="card">
+            <div class="card-header bg-primary">
+                <h3 class="card-title text-white">{{ $title }}</h3>
+                <button class="btn btn-light float-right" id="btn-create">
+                    <i class="fas fa-plus"></i> Tambah User
+                </button>
+            </div>
             <div class="card-body">
                 <table class="table table-bordered table-hover" id="users-table">
-                    <thead class="thead-light">
+                    <thead>
                         <tr>
-                            <th>No</th>
+                            <th width="5%">No</th>
                             <th>Nama</th>
                             <th>Email</th>
-                            <th>Role</th>
-                            <th>Aksi</th>
+                            <th width="15%">Role</th>
+                            <th width="15%">Aksi</th>
                         </tr>
                     </thead>
                 </table>
@@ -43,61 +40,50 @@
         </div>
     </div>
 
-    <!-- Modal Create/Edit -->
-    <div class="modal fade" id="userModal" tabindex="-1" role="dialog" aria-labelledby="userModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+    <!-- Modal (Tetap dalam file yang sama) -->
+    <div class="modal fade" id="user-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title text-white" id="modal-title">Tambah User</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
                 <form id="user-form">
-                    <div class="modal-header bg-primary">
-                        <h5 class="modal-title text-white" id="userModalLabel">Tambah User</h5>
-                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-
+                    @csrf
+                    <input type="hidden" id="user-id" name="id">
                     <div class="modal-body">
-                        @csrf
-                        <input type="hidden" name="id" id="user_id">
                         <div class="form-group">
-                            <label for="nama">Nama</label>
-                            <input type="text" class="form-control" name="nama" id="nama" required
-                                placeholder="Masukkan nama lengkap">
-                            <small class="text-danger" id="nama-error"></small>
+                            <label for="nama">Nama Lengkap</label>
+                            <input type="text" class="form-control" id="nama" name="nama" required>
                         </div>
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" class="form-control" name="email" id="email" required
-                                placeholder="contoh@sekolah.sch.id">
-                            <small class="text-danger" id="email-error"></small>
+                            <input type="email" class="form-control" id="email" name="email" required>
                         </div>
                         <div class="form-group">
-                            <label for="role">Peran</label>
-                            <select class="form-control" name="role" id="role" required>
-                                <option value="" disabled selected>Pilih peran</option>
+                            <label for="role">Role</label>
+                            <select class="form-control" id="role" name="role" required>
+                                <option value="">Pilih Role</option>
                                 <option value="admin">Admin</option>
                                 <option value="kepsek">Kepala Sekolah</option>
+                                <option value="wakil_kurikulum">Wakil Kurikulum</option>
                             </select>
-                            <small class="text-danger" id="role-error"></small>
                         </div>
-                        <div class="form-group password-group">
-                            <label for="password">Password <small class="text-muted">(Biarkan kosong jika tidak ingin
-                                    mengubah)</small></label>
-                            <input type="password" class="form-control" name="password" id="password"
-                                placeholder="Minimal 8 karakter">
-                            <small class="text-danger" id="password-error"></small>
+                        <div class="form-group password-field">
+                            <label for="password">Password</label>
+                            <input type="password" class="form-control" id="password" name="password">
                         </div>
-                        <div class="form-group password-group">
+                        <div class="form-group password-field">
                             <label for="password_confirmation">Konfirmasi Password</label>
-                            <input type="password" class="form-control" name="password_confirmation"
-                                id="password_confirmation" placeholder="Ketik ulang password">
-                            <small class="text-danger" id="password_confirmation-error"></small>
+                            <input type="password" class="form-control" id="password_confirmation"
+                                name="password_confirmation">
                         </div>
                     </div>
-
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary" id="btn-save-user">Simpan</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
                     </div>
                 </form>
             </div>
@@ -107,10 +93,8 @@
 
 @push('scripts')
     <script>
-        let table;
-
         $(function() {
-            table = $('#users-table').DataTable({
+            const table = $('#users-table').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: '{{ route('admin.users.index') }}',
@@ -129,95 +113,160 @@
                         name: 'email'
                     },
                     {
-                        data: 'role',
-                        name: 'role',
-                        
+                        data: 'role_formatted',
+                        name: 'role'
                     },
                     {
                         data: 'action',
                         name: 'action',
                         orderable: false,
-                        searchable: false
+                        searchable: false,
+                        render: function(data, type, row) {
+                            return `
+                        <button class="btn btn-sm btn-warning btn-edit mr-1" 
+                            data-id="${row.id}" 
+                            data-nama="${row.nama}"
+                            data-email="${row.email}"
+                            data-role="${row.role}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger btn-delete" 
+                            data-id="${row.id}"
+                            data-nama="${row.nama}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `;
+                        }
                     }
                 ]
             });
 
-            $('#btn-create-user').click(function() {
+            // Show create modal
+            $('#btn-create').click(function() {
                 $('#user-form')[0].reset();
-                $('#userModalLabel').text('Tambah User');
-                $('.password-group').show();
-                $('#userModal').modal('show');
-                $('.text-muted').hide();
-
-                $('#user_id').val('');
-                $('#userModal').modal('show');
+                $('#modal-title').text('Tambah User Baru');
+                $('.password-field').show();
+                $('#user-id').val('');
+                $('#user-modal').modal('show');
             });
 
+            // Show edit modal
             $(document).on('click', '.btn-edit', function() {
-                const user = $(this).data('user');
+                const id = $(this).data('id');
+                const nama = $(this).data('nama');
+                const email = $(this).data('email');
+                const role = $(this).data('role');
 
-                $('#userModalLabel').text('Edit User');
-                $('#user_id').val(user.id);
-                $('#nama').val(user.nama);
-                $('#email').val(user.email);
-                $('#role').val(user.role);
-                $('.text-muted').show();
-
-                $('#userModal').modal('show');
+                $('#user-id').val(id);
+                $('#nama').val(nama);
+                $('#email').val(email);
+                $('#role').val(role);
+                $('#modal-title').text('Edit User');
+                $('.password-field').hide(); // Sembunyikan field password saat edit
+                $('#user-modal').modal('show');
             });
 
-            $('#user-form').on('submit', function(e) {
+            // Submit form
+            $('#user-form').submit(function(e) {
                 e.preventDefault();
+                const formData = new FormData(this);
+                const id = $('#user-id').val();
+                const url = id ? `/admin/users/${id}` : '{{ route('admin.users.store') }}';
 
-                $('.text-danger').text('');
-
-                const id = $('#user_id').val();
-                const url = id ? `/admin/users/${id}` : `{{ route('admin.users.store') }}`;
-                const method = id ? 'PUT' : 'POST';
-
-                let formData = new FormData(this);
-                formData.append('_method', method);
+                // Tambahkan _method ke FormData
+                if (id) {
+                    formData.append('_method', 'PUT');
+                }
 
                 $.ajax({
                     url: url,
-                    type: 'POST',
+                    type: 'POST', // Selalu gunakan POST
                     data: formData,
                     processData: false,
                     contentType: false,
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(res) {
-                        $('#userModal').modal('hide');
+                    success: function(response) {
+                        $('#user-modal').modal('hide');
                         table.ajax.reload();
-                        toastr.success(res.message || 'Berhasil menyimpan data.');
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Sukses!',
+                            text: response.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
                     },
                     error: function(xhr) {
-                        const res = xhr.responseJSON;
-                        if (res?.errors) {
-                            $('.is-invalid').removeClass('is-invalid');
-                            $('.text-danger').text('');
+                        const errors = xhr.responseJSON.errors;
+                        let errorMessages = '';
 
-                            // Tampilkan error untuk setiap field
-                            Object.entries(res.errors).forEach(([field, messages]) => {
-                                const inputElement = $(`#${field}`);
-                                const errorElement = $(`#${field}-error`);
+                        $.each(errors, function(key, value) {
+                            errorMessages += `<li>${value[0]}</li>`;
+                            $(`#${key}`).addClass('is-invalid');
+                            $(`#${key}-error`).remove(); // Hapus error sebelumnya
+                            $(`#${key}`).after(
+                                `<div id="${key}-error" class="invalid-feedback">${value[0]}</div>`
+                            );
+                        });
 
-                                if (inputElement.length) {
-                                    inputElement.addClass('is-invalid');
-                                }
-
-                                if (errorElement.length) {
-                                    errorElement.text(messages[0]);
-                                } else {
-                                    toastr.error(messages[0]);
-                                }
-                            });
-                        } else {
-                            toastr.error(res.message || 'Terjadi kesalahan.');
-                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            html: `<ul>${errorMessages}</ul>`,
+                        });
                     }
                 });
+            });
+
+            // Delete user
+            $(document).on('click', '.btn-delete', function() {
+                const id = $(this).data('id');
+                const nama = $(this).data('nama');
+
+                Swal.fire({
+                    title: 'Hapus User?',
+                    html: `Anda akan menghapus user <b>${nama}</b>`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/admin/users/${id}`,
+                            type: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(response) {
+                                table.ajax.reload();
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Terhapus!',
+                                    text: response.message,
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                            },
+                            error: function(xhr) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal!',
+                                    text: xhr.responseJSON.message,
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Reset form ketika modal ditutup
+            $('#user-modal').on('hidden.bs.modal', function() {
+                $('#user-form')[0].reset();
+                $('.is-invalid').removeClass('is-invalid');
+                $('.invalid-feedback').text('');
             });
         });
     </script>

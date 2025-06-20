@@ -16,24 +16,27 @@ class UserController extends Controller
         if ($request->ajax()) {
             $users = User::where('role', '!=', 'guru');
 
-            return DataTables::of($users)
+            return datatables()->of($users)
                 ->addIndexColumn()
-                ->addColumn('action', function ($user) {
-                    $userData = htmlspecialchars(json_encode([
-                        'id' => $user->id,
-                        'nama' => $user->nama,
-                        'email' => $user->email,
-                        'role' => $user->role,
-                    ]));
-
-                    return '<button class="btn btn-sm btn-warning btn-edit" data-user="' . $userData . '">Edit</button>
-                <form action="' . route('admin.users.destroy', $user->id) . '" method="POST" style="display:inline;">
-                    ' . csrf_field() . method_field('DELETE') . '
-                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm(\'Yakin hapus user?\')">Hapus</button>
-                </form>';
+                ->addColumn('role_formatted', function ($user) {
+                    return ucfirst($user->role);
                 })
+                ->addColumn('action', function ($user) {
+                    $buttons = '<button class="btn btn-sm btn-warning btn-edit mr-1" 
+                               data-id="' . $user->id . '" 
+                               data-nama="' . $user->nama . '"
+                               data-email="' . $user->email . '"
+                               data-role="' . $user->role . '">
+                               <i class="fas fa-edit"></i></button>';
 
-                ->rawColumns(['action'])
+                    $buttons .= '<button class="btn btn-sm btn-danger btn-delete" 
+                                data-id="' . $user->id . '"
+                                data-nama="' . $user->nama . '">
+                                <i class="fas fa-trash"></i></button>';
+
+                    return $buttons;
+                })
+                ->rawColumns(['action', 'role_formatted'])
                 ->make(true);
         }
 
@@ -42,74 +45,34 @@ class UserController extends Controller
         ]);
     }
 
-
-    // create function
-    public function create()
-    {
-        return view('admin.users.create', [
-            'title' => 'Tambah User Baru',
-        ]);
-    }
-
-    /**
-     * Menyimpan user baru ke database.
-     */
     public function store(Request $request)
     {
-        // Validasi input
         $validatedData = $request->validate([
             'nama' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'role' => ['required', Rule::in(['admin', 'kepsek'])],
+            'role' => ['required', Rule::in(['admin', 'kepsek', 'wakil_kurikulum'])],
             'password' => 'required|string|min:8|confirmed',
-        ], [
-            'nama.required' => 'Nama wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'email.unique' => 'Email ini sudah terdaftar.',
-            'role.required' => 'Peran (role) wajib dipilih.',
-            'role.in' => 'Peran yang dipilih tidak valid.',
-            'password.required' => 'Password wajib diisi.',
-            'password.min' => 'Password minimal 8 karakter.',
-            'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
 
-        // Buat user baru
         User::create([
-            'nama' => $request->nama,
+            'nama' => $validatedData['nama'],
             'email' => $validatedData['email'],
             'role' => $validatedData['role'],
             'password' => Hash::make($validatedData['password']),
         ]);
 
-        return redirect()->route('admin.users.index')->with('toast_success', 'User berhasil ditambahkan!');
-    }
-
-    /**
-     * Menampilkan form untuk mengedit user.
-     */
-    public function edit(User $user)
-    {
-        // Pastikan user yang diedit bukan 'guru'
-        if ($user->role == 'guru') {
-            abort(403, 'Akses ditolak. Anda tidak bisa mengedit user dengan peran guru.');
-        }
-
-        return view('admin.users.edit', [
-            'title' => 'Edit User',
-            'user' => $user,
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User berhasil ditambahkan!'
         ]);
     }
 
-    /**
-     * Memperbarui user di database.
-     */
     public function update(Request $request, User $user)
     {
         $rules = [
             'nama' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
-            'role' => ['required', Rule::in(['admin', 'kepsek'])],
+            'role' => ['required', Rule::in(['admin', 'kepsek', 'wakil_kurikulum'])],
         ];
 
         if ($request->filled('password')) {
@@ -118,34 +81,35 @@ class UserController extends Controller
 
         $validatedData = $request->validate($rules);
 
-        // Update data
-        $user->nama = $request->nama;
-        $user->email = $validatedData['email'];
-        $user->role = $validatedData['role'];
+        $user->update([
+            'nama' => $validatedData['nama'],
+            'email' => $validatedData['email'],
+            'role' => $validatedData['role'],
+            'password' => $request->filled('password')
+                ? Hash::make($validatedData['password'])
+                : $user->password
+        ]);
 
-        if ($request->filled('password')) {
-            $user->password = Hash::make($validatedData['password']);
-        }
-
-        $user->save();
-
-        return redirect()->route('admin.users.index')->with('toast_success', 'User berhasil diperbarui!');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User berhasil diperbarui!'
+        ]);
     }
 
-    /**
-     * Menghapus user dari database.
-     */
     public function destroy(User $user)
     {
-        // Pastikan user yang dihapus bukan 'guru'
         if ($user->role == 'guru') {
-            return back()->with('toast_error', 'Akses ditolak. Anda tidak bisa menghapus user dengan peran guru.');
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Tidak bisa menghapus user guru'
+            ], 403);
         }
 
-        // Hapus user
         $user->delete();
 
-        // Redirect dengan pesan sukses
-        return redirect()->route('admin.users.index')->with('toast_success', 'User berhasil dihapus!');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User berhasil dihapus!'
+        ]);
     }
 }
