@@ -21,5 +21,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Role-based Routing
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(base_path('routes/admin.php'));
     Route::middleware('role:kepsek')->prefix('kepsek')->name('kepsek.')->group(base_path('routes/kepsek.php'));
+    Route::middleware('role:wakil_kurikulum')->prefix('wakil-kurikulum')->name('wakur.')->group(base_path('routes/wakur.php'));
     Route::middleware('role:guru')->prefix('guru')->name('guru.')->group(base_path('routes/guru.php'));
 });

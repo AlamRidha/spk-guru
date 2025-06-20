@@ -14,23 +14,19 @@ class KriteriaSeeder extends Seeder
      */
     public function run(): void
     {
-        $kriterias = [
-            [
-                'nama' => 'Pengalaman Mengajar',
-                'bobot' => 0.1429,
-                'jenis' => 'benefit',
-                'sub_kriterias' => [
-                    ['nama' => '>5 Tahun', 'nilai' => 5, 'keterangan' => 'Sangat Baik'],
-                    ['nama' => '4-5 Tahun', 'nilai' => 4, 'keterangan' => 'Baik'],
-                    ['nama' => '2-3 Tahun', 'nilai' => 3, 'keterangan' => 'Cukup'],
-                    ['nama' => '<=1 Tahun', 'nilai' => 2, 'keterangan' => 'Buruk']
-                ]
-            ],
-        ];
+        Kriteria::create([
+            'nama' => 'Moralitas',
+            'bobot' => 2.0000,
+            'jenis' => 'benefit',
+            'penilai' => 'kepsek'
+        ]);
 
-        foreach ($kriterias as $data) {
-            $kriteria = Kriteria::create(Arr::except($data, ['sub_kriterias']));
-            $kriteria->subKriterias()->createMany($data['sub_kriterias']);
-        }
+        // Kriteria untuk Wakil Kurikulum
+        Kriteria::create([
+            'nama' => 'Pengalaman Mengajar',
+            'bobot' => 2.0000,
+            'jenis' => 'benefit',
+            'penilai' => 'wakil_kurikulum'
+        ]);
     }
 }

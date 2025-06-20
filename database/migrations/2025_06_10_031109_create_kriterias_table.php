@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('kriterias', function (Blueprint $table) {
             $table->id();
             $table->string('nama', 100);
-            $table->decimal('bobot', 5, 4); // 0.0000 - 1.0000
-            $table->enum('jenis', ['benefit', 'cost']);
+            $table->decimal('bobot', 8, 4);
+            $table->enum('jenis', ['benefit', 'cost']); // Benefit: makin tinggi makin baik
+            $table->enum('penilai', ['kepsek', 'wakil_kurikulum', 'semua']);
             $table->timestamps();
         });
     }

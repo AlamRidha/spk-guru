@@ -17,4 +17,10 @@ class Kriteria extends Model
     {
         return $this->hasMany(Penilaian::class);
     }
+
+    public function scopeForPenilai($query, $role)
+    {
+        return $query->where('penilai', 'semua')
+            ->orWhere('penilai', $role);
+    }
 }

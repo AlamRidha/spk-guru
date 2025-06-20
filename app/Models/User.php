@@ -24,9 +24,20 @@ class User extends Authenticatable
 
     ];
 
-    public function penilaian()
+    public function penilaians()
     {
-        return $this->hasMany(Penilaian::class);
+        return $this->hasMany(Penilaian::class, 'user_id');
+    }
+
+    // Cek role
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isKepsek()
+    {
+        return $this->role === 'kepsek';
     }
 
     /**

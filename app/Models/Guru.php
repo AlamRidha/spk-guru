@@ -32,7 +32,8 @@ class Guru extends Model
 
     public function penilaians()
     {
-        return $this->hasMany(Penilaian::class);
+        // return $this->hasMany(Penilaian::class);
+        return $this->hasMany(Penilaian::class)->orderBy('kriteria_id');
     }
 
     public function hasil()
