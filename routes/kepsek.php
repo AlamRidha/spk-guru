@@ -29,14 +29,9 @@ Route::prefix('penilaians')->name('penilaians.')->group(function () {
     Route::get('/normalisasi-matriks', [PenilaianController::class, 'normalisasiMatriks'])->name('normalisasimatrik');
 });
 
-// Hasil MOORA
-Route::prefix('hasils')->group(function () {
-    Route::get('/', [HasilController::class, 'index'])->name('hasils.index');
-    Route::post('/calculate', [HasilController::class, 'calculate'])->name('hasils.calculate');
-    Route::get('/detail', [HasilController::class, 'detail'])->name('hasils.detail');
-});
 
-// MOORA Calculation API
-Route::prefix('ranking')->group(function () {
-    Route::get('/', [RankingController::class, 'index'])->name('ranking.index');
+// Ranking
+Route::prefix('ranking')->name('ranking.')->group(function () {
+    Route::get('/', [HasilController::class, 'index'])->name('index');
+    Route::get('/export', [HasilController::class, 'export'])->name('export');
 });
