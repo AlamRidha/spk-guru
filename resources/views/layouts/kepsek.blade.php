@@ -7,7 +7,31 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'SPK Guru Tetap')</title>
     @include('kepsek.partials.head')
+
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .content-wrapper {
+            flex: 1;
+            padding-bottom: 20px;
+        }
+
+        .main-footer {
+            padding: 15px;
+            background: #f4f6f9;
+        }
+    </style>
 </head>
+
 
 <body class="hold-transition sidebar-mini layout-fixed">
     <div class="wrapper">
@@ -16,7 +40,9 @@
         @include('kepsek.components.sidebar')
 
         <div class="content-wrapper">
-            @yield('content')
+            <div class="content">
+                @yield('content')
+            </div>
         </div>
         <footer class="main-footer">
             <strong>Copyright &copy; {{ date('Y') }} <a href="#">SMK Global Cendekia</a>.</strong>

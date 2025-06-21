@@ -63,11 +63,20 @@
                             </a>
                         </li>
                     </ul>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('kepsek.penilaians.normalisasimatrik') }}"
+                                class="nav-link {{ Request::routeIs('kepsek.penilaians.normalisasimatrik') ? 'active' : '' }}">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Hasil Penilaian</p>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
 
                 <!-- Menu Hasil -->
-                <li class="nav-item {{ Request::routeIs('kepsek.hasil.*') ? 'menu-open' : '' }}">
-                    <a href="#" class="nav-link {{ Request::routeIs('kepsek.hasil.*') ? 'active' : '' }}">
+                <li class="nav-item {{ Request::routeIs('kepsek.ranking.*') ? 'menu-open' : '' }}">
+                    <a href="#" class="nav-link {{ Request::routeIs('kepsek.ranking.*') ? 'active' : '' }}">
                         <i class="nav-icon fas fa-chart-bar"></i>
                         <p>
                             Hasil Analisis
@@ -76,8 +85,8 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ route('kepsek.hasils.index') }}"
-                                class="nav-link {{ Request::routeIs('kepsek.hasils.index') ? 'active' : '' }}">
+                            <a href="{{ route('kepsek.ranking.index') }}"
+                                class="nav-link {{ Request::routeIs('kepsek.ranking.index') ? 'active' : '' }}">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Ranking Guru</p>
                             </a>

@@ -4,7 +4,8 @@ use App\Http\Controllers\Kepsek\{
     DashboardController,
     GuruController,
     HasilController,
-    PenilaianController
+    PenilaianController,
+    RankingController
 };
 use App\Http\Controllers\MooraController;
 use Illuminate\Support\Facades\Route;
@@ -16,12 +17,16 @@ Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard'
 Route::resource('gurus', GuruController::class);
 
 // Penilaian
-Route::prefix('penilaians')->group(function () {
-    Route::get('/', [PenilaianController::class, 'index'])->name('penilaians.index');
-    Route::post('/', [PenilaianController::class, 'store'])->name('penilaians.store');
-    Route::get('/data', [PenilaianController::class, 'getData'])->name('penilaians.data');
-    Route::get('/get', [PenilaianController::class, 'getPenilaian'])->name('penilaians.get');
-    Route::post('/delete-by-guru', [PenilaianController::class, 'destroyByGuru'])->name('penilaians.destroy-by-guru');
+Route::prefix('penilaians')->name('penilaians.')->group(function () {
+    Route::get('/', [PenilaianController::class, 'index'])->name('index');
+    Route::get('/data', [PenilaianController::class, 'getData'])->name('data');
+    Route::get('/get', [PenilaianController::class, 'getPenilaian'])->name('get');
+    Route::post('/', [PenilaianController::class, 'store'])->name('store');
+    Route::delete('/{penilaian}', [PenilaianController::class, 'destroy'])->name('destroy');
+    Route::post('/destroy-by-guru', [PenilaianController::class, 'destroyByGuru'])->name('destroy-by-guru');
+
+    Route::get('/matriks', [PenilaianController::class, 'matrikKeputusan'])->name('matriks');
+    Route::get('/normalisasi-matriks', [PenilaianController::class, 'normalisasiMatriks'])->name('normalisasimatrik');
 });
 
 // Hasil MOORA
@@ -32,9 +37,6 @@ Route::prefix('hasils')->group(function () {
 });
 
 // MOORA Calculation API
-Route::prefix('moora')->group(function () {
-    Route::get('/weights', [HasilController::class, 'getNormalizedWeights'])->name('moora.weights');
-    Route::get('/ranking', [HasilController::class, 'calculateRanking'])->name('moora.ranking');
-    Route::get('/full-calculation', [HasilController::class, 'fullCalculation'])->name('moora.full-calculation');
-    Route::get('/hasil', [HasilController::class, 'getHasil'])->name('moora.hasil');
+Route::prefix('ranking')->group(function () {
+    Route::get('/', [RankingController::class, 'index'])->name('ranking.index');
 });

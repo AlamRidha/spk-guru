@@ -9,13 +9,18 @@ use App\Models\Penilaian;
 use App\Models\SubKriteria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 
 class PenilaianController extends Controller
 {
     public function index()
     {
-        $kriterias = Kriteria::with('subKriterias')->get();
+        // Hanya ambil kriteria untuk penilai kepsek
+        $kriterias = Kriteria::where('penilai', 'kepsek')
+            ->with('subKriterias')
+            ->get();
+
         return view('kepsek.penilaians.index', [
             'title' => 'Penilaian',
             'kriterias' => $kriterias
@@ -25,7 +30,10 @@ class PenilaianController extends Controller
     public function getData(Request $request)
     {
         $data = Guru::with(['penilaians' => function ($query) {
-            $query->where('user_id', Auth::id());
+            $query->where('user_id', Auth::id())
+                ->whereHas('kriteria', function ($q) {
+                    $q->where('penilai', 'kepsek');
+                });
         }, 'penilaians.kriteria'])->get();
 
         return DataTables::of($data)
@@ -65,6 +73,9 @@ class PenilaianController extends Controller
         }])
             ->where('user_id', Auth::id())
             ->where('guru_id', $request->guru_id)
+            ->whereHas('kriteria', function ($q) {
+                $q->where('penilai', 'kepsek');
+            })
             ->get();
 
         return response()->json($penilaians);
@@ -90,6 +101,15 @@ class PenilaianController extends Controller
         ]);
 
         foreach ($request->nilai as $kriteria_id => $nilai) {
+            // Pastikan kriteria ini untuk penilai kepsek
+            $kriteria = Kriteria::where('id', $kriteria_id)
+                ->where('penilai', 'kepsek')
+                ->first();
+
+            if (!$kriteria) {
+                continue; // Skip jika kriteria tidak untuk kepsek
+            }
+
             Penilaian::updateOrCreate(
                 [
                     'user_id' => Auth::id(),
@@ -105,7 +125,11 @@ class PenilaianController extends Controller
 
     public function destroy(Penilaian $penilaian)
     {
-        // Standard resource deletion
+        // Pastikan penilaian ini milik user yang login
+        if ($penilaian->user_id != Auth::id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
         $penilaian->delete();
         return response()->json(['message' => 'Penilaian berhasil dihapus']);
     }
@@ -123,5 +147,138 @@ class PenilaianController extends Controller
         }
 
         return response()->json(['message' => 'Gagal menghapus penilaian'], 500);
+    }
+
+    public function matrikKeputusan()
+    {
+        try {
+            // Ambil data guru dengan penilaiannya
+            $gurus = Guru::with(['penilaians' => function ($query) {
+                $query->where('user_id', Auth::id())
+                    ->whereHas('kriteria', function ($q) {
+                        $q->where('penilai', 'kepsek');
+                    })
+                    ->with('kriteria')
+                    ->orderBy('kriteria_id');
+            }])
+                // ->orderBy('nama')
+                ->get();
+
+            // Ambil kriteria yang sudah dinilai saja, diurutkan
+            $kriteriaDinilai = Kriteria::where('penilai', 'kepsek')
+                ->whereHas('penilaians', function ($query) {
+                    $query->where('user_id', Auth::id());
+                })
+                ->orderBy('id')
+                ->get();
+
+            $matriks = [];
+            foreach ($gurus as $index => $guru) {
+                $row = [
+                    'no' => $index + 1,
+                    'guru' => $guru->nama,
+                    'nilai' => []
+                ];
+
+                foreach ($kriteriaDinilai as $kriteria) {
+                    $penilaian = $guru->penilaians->firstWhere('kriteria_id', $kriteria->id);
+                    $row['nilai'][] = $penilaian ? $penilaian->nilai : '-';
+                }
+
+                $matriks[] = $row;
+            }
+
+            return response()->json([
+                'matriks' => $matriks,
+                'total_kriteria' => $kriteriaDinilai->count()
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in getMatriksKeputusan: ' . $e->getMessage());
+            return response()->json(['error' => 'Server error'], 500);
+        }
+    }
+
+    public function normalisasiMatriks()
+    {
+        try {
+            // Ambil data guru dengan penilaiannya
+            $gurus = Guru::with(['penilaians' => function ($query) {
+                $query->where('user_id', Auth::id())
+                    ->whereHas('kriteria', function ($q) {
+                        $q->where('penilai', 'kepsek');
+                    })
+                    ->with('kriteria')
+                    ->orderBy('kriteria_id');
+            }])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // Ambil kriteria yang sudah dinilai
+            $kriteriaDinilai = Kriteria::where('penilai', 'kepsek')
+                ->whereHas('penilaians', function ($query) {
+                    $query->where('user_id', Auth::id());
+                })
+                ->orderBy('id')
+                ->get();
+
+            // Hitung matriks keputusan
+            $matriks = [];
+            foreach ($gurus as $index => $guru) {
+                $row = [
+                    'no' => $index + 1,
+                    'guru' => $guru->nama,
+                    'nilai' => []
+                ];
+
+                foreach ($kriteriaDinilai as $kriteria) {
+                    $penilaian = $guru->penilaians->firstWhere('kriteria_id', $kriteria->id);
+                    $row['nilai'][] = $penilaian ? $penilaian->nilai : 0;
+                }
+
+                $matriks[] = $row;
+            }
+
+            // Hitung normalisasi
+            $normalisasi = [
+                'sum_squares' => [],
+                'normalized' => []
+            ];
+
+            // Hitung sum of squares untuk setiap kriteria
+            foreach ($kriteriaDinilai as $i => $kriteria) {
+                $sum = 0;
+                foreach ($matriks as $row) {
+                    $sum += pow($row['nilai'][$i], 2);
+                }
+                $normalisasi['sum_squares'][$i] = sqrt($sum);
+            }
+
+            // Hitung nilai normalisasi
+            foreach ($matriks as $row) {
+                $normalizedRow = [
+                    'no' => $row['no'],
+                    'guru' => $row['guru'],
+                    'nilai' => []
+                ];
+
+                foreach ($row['nilai'] as $i => $nilai) {
+                    $normalizedRow['nilai'][$i] = $normalisasi['sum_squares'][$i] != 0
+                        ? $nilai / $normalisasi['sum_squares'][$i]
+                        : 0;
+                }
+
+                $normalisasi['normalized'][] = $normalizedRow;
+            }
+
+            return view('kepsek.penilaians.normalisasi', [
+                'title' => 'Normalisasi Matriks Keputusan',
+                'matriks' => $matriks,
+                'normalisasi' => $normalisasi,
+                'totalKriteria' => $kriteriaDinilai->count()
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in normalisasiMatriks: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat memproses data');
+        }
     }
 }
