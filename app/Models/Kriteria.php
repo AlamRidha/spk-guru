@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Kriteria extends Model
 {
-    protected $fillable = ['nama', 'bobot', 'jenis'];
+    protected $fillable = ['nama', 'bobot', 'jenis', 'penilai'];
 
     public function subKriterias()
     {

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('nama', 100);
             $table->decimal('bobot', 8, 4);
             $table->enum('jenis', ['benefit', 'cost']); // Benefit: makin tinggi makin baik
-            $table->enum('penilai', ['kepsek', 'wakil_kurikulum', 'semua']);
+            $table->enum('penilai', ['kepsek', 'wakil_kurikulum']);
             $table->timestamps();
         });
     }

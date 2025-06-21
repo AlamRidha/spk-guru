@@ -19,10 +19,17 @@ Route::resource('gurus', GuruController::class);
 
 
 // Data Master
-Route::get('kriterias/all', [KriteriaController::class, 'getAll'])->name('kriterias.all');
-Route::resource('kriterias', KriteriaController::class);
-Route::get('dashboard/normalized-weights', [DashboardController::class, 'getNormalizedWeights'])
-    ->name('dashboard.normalized-weights');
+Route::prefix('kriterias')->name('kriterias.')->group(function () {
+    Route::get('/', [KriteriaController::class, 'index'])->name('index');
+    Route::get('/data-kepsek', [KriteriaController::class, 'dataKepsek'])->name('dataKepsek');
+    Route::get('/data-wakur', [KriteriaController::class, 'dataWakur'])->name('dataWakur');
+    Route::post('/', [KriteriaController::class, 'store'])->name('store');
+    Route::put('/{kriteria}', [KriteriaController::class, 'update'])->name('update');
+    Route::delete('/{kriteria}', [KriteriaController::class, 'destroy'])->name('destroy');
+    Route::get('/normalized-weights-by-penilai', [KriteriaController::class, 'getNormalizedWeightsByPenilai'])
+        ->name('normalized-weights-by-penilai');
+});
+
 
 Route::resource('sub-kriterias', SubKriteriaController::class)->except(['show']);
 Route::get('sub-kriterias/{kriteria}/by-kriteria', [SubKriteriaController::class, 'getByKriteria'])
