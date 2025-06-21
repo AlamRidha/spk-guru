@@ -12,9 +12,12 @@ class SubKriteriaController extends Controller
 {
     public function index(Request $request)
     {
+        $penilai = $request->penilai ?? 'kepsek'; // Default kepsek
+
         if ($request->ajax()) {
             if ($request->has('grouped')) {
-                $kriterias = Kriteria::withCount('subKriterias')
+                $kriterias = Kriteria::where('penilai', $penilai)
+                    ->withCount('subKriterias')
                     ->having('sub_kriterias_count', '>', 0)
                     ->with('subKriterias')
                     ->get();
@@ -38,13 +41,17 @@ class SubKriteriaController extends Controller
             }
 
             // Default non-grouped view
-            $subKriterias = SubKriteria::with('kriteria');
+            $subKriterias = SubKriteria::with(['kriteria' => function ($query) use ($penilai) {
+                $query->where('penilai', $penilai);
+            }]);
+
             return DataTables::of($subKriterias)->make(true);
         }
 
         return view('admin.sub-kriterias.index', [
             'title' => 'Manajemen Sub Kriteria',
-            'kriterias' => Kriteria::all()
+            'kriterias' => Kriteria::where('penilai', $penilai)->get(),
+            'penilai' => $penilai
         ]);
     }
 
@@ -62,6 +69,12 @@ class SubKriteriaController extends Controller
             'nilai' => 'required|integer|between:1,5',
             'keterangan' => 'required|string|max:255'
         ]);
+
+        // Validasi tambahan - pastikan kriteria sesuai penilai
+        $kriteria = Kriteria::find($validated['kriteria_id']);
+        if (!$kriteria) {
+            return response()->json(['message' => 'Kriteria tidak valid'], 400);
+        }
 
         SubKriteria::create($validated);
 

@@ -13,4 +13,11 @@ class SubKriteria extends Model
     {
         return $this->belongsTo(Kriteria::class);
     }
+
+    public function scopeForPenilai($query, $penilai)
+    {
+        return $query->whereHas('kriteria', function ($q) use ($penilai) {
+            $q->where('penilai', $penilai);
+        });
+    }
 }

@@ -8,7 +8,17 @@
             <div class="card-header bg-primary d-flex justify-content-between align-items-center">
                 <h3 class="card-title text-white my-auto">{{ $title }}</h3>
                 <div>
-                    <button class="btn btn-light" id="btn-add-subkriteria">
+                    <div class="btn-group">
+                        <a href="{{ route('admin.sub-kriterias.index', ['penilai' => 'kepsek']) }}"
+                            class="btn btn-light {{ $penilai == 'kepsek' ? 'active' : '' }}">
+                            Kepala Sekolah
+                        </a>
+                        <a href="{{ route('admin.sub-kriterias.index', ['penilai' => 'wakil_kurikulum']) }}"
+                            class="btn btn-light {{ $penilai == 'wakil_kurikulum' ? 'active' : '' }}">
+                            Wakil Kurikulum
+                        </a>
+                    </div>
+                    <button class="btn btn-light ml-2" id="btn-add-subkriteria">
                         <i class="fas fa-plus-circle mr-2"></i>Tambah Sub Kriteria
                     </button>
                 </div>
@@ -154,30 +164,33 @@
         #subkriteria-list-table tbody tr td {
             padding: 0.5rem;
         }
+
+        .btn-group .btn-light.active {
+            background-color: #007bff;
+            color: white;
+        }
     </style>
 @endpush
 
 @push('scripts')
     <script>
         $(function() {
+            const penilai = '{{ $penilai }}';
             let table;
-            let isGrouped = true;
 
             // Initialize DataTable
-            function initDataTable(grouped = true) {
+            function initDataTable() {
                 if ($.fn.DataTable.isDataTable('#subkriterias-table')) {
                     table.destroy();
                 }
 
-                const url = grouped ?
-                    '{{ route('admin.sub-kriterias.index') }}?grouped=1' :
-                    '{{ route('admin.sub-kriterias.index') }}';
+                const url = '{{ route('admin.sub-kriterias.index') }}?grouped=1&penilai=' + penilai;
 
                 table = $('#subkriterias-table').DataTable({
                     processing: true,
                     serverSide: true,
                     ajax: url,
-                    columns: grouped ? [{
+                    columns: [{
                             data: 'DT_RowIndex',
                             orderable: false,
                             searchable: false
@@ -190,24 +203,6 @@
                             data: 'subkriteria_list',
                             name: 'subkriteria_list',
                             orderable: false
-                        },
-                        {
-                            data: 'action',
-                            orderable: false,
-                            searchable: false
-                        }
-                    ] : [{
-                            data: 'DT_RowIndex',
-                            orderable: false,
-                            searchable: false
-                        },
-                        {
-                            data: 'kriteria.nama',
-                            name: 'kriteria.nama'
-                        },
-                        {
-                            data: 'nama',
-                            name: 'nama'
                         },
                         {
                             data: 'action',
@@ -227,26 +222,26 @@
                         let html = '';
                         data.forEach((item, index) => {
                             html += `
-                    <tr data-id="${item.id}">
-                        <td>${index + 1}</td>
-                        <td>${item.nama}</td>
-                        <td>${item.nilai}</td>
-                        <td>${item.keterangan}</td>
-                        <td>
-                            <button class="btn btn-sm btn-warning btn-edit-sub" 
-                                data-id="${item.id}"
-                                data-nama="${item.nama}"
-                                data-nilai="${item.nilai}"
-                                data-keterangan="${item.keterangan}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger btn-delete-sub" 
-                                data-id="${item.id}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+                                <tr data-id="${item.id}">
+                                    <td>${index + 1}</td>
+                                    <td>${item.nama}</td>
+                                    <td>${item.nilai}</td>
+                                    <td>${item.keterangan}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning btn-edit-sub" 
+                                            data-id="${item.id}"
+                                            data-nama="${item.nama}"
+                                            data-nilai="${item.nilai}"
+                                            data-keterangan="${item.keterangan}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger btn-delete-sub" 
+                                            data-id="${item.id}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
                         });
 
                         $('#subkriteria-list-table tbody').html(html ||
@@ -256,7 +251,7 @@
                 });
             }
 
-            // Initial load with grouped view
+            // Initial load
             initDataTable();
 
             // Open manage modal
@@ -314,41 +309,33 @@
             });
 
             // Edit sub kriteria
-            // Edit sub kriteria
             $(document).on('click', '.btn-edit-sub', function() {
                 const id = $(this).data('id');
                 const nama = $(this).data('nama');
                 const nilai = $(this).data('nilai');
                 const keterangan = $(this).data('keterangan');
 
-                console.log('Editing:', {
-                    id,
-                    nama,
-                    nilai,
-                    keterangan
-                });
-
                 const row = $(this).closest('tr');
                 row.html(`
-        <td>${row.find('td:first').text()}</td>
-        <td><input type="text" class="form-control form-control-sm" value="${nama}"></td>   
-        <td>
-            <select class="form-control form-control-sm">
-                ${[1,2,3,4,5].map(i => 
-                    `<option value="${i}" ${i == nilai ? 'selected' : ''}>${i}</option>`
-                ).join('')}
-            </select>
-        </td>
-        <td><input type="text" class="form-control form-control-sm" value="${keterangan}"></td>
-        <td>
-            <button class="btn btn-sm btn-success btn-save-sub" data-id="${id}">
-                <i class="fas fa-check"></i>
-            </button>
-            <button class="btn btn-sm btn-secondary btn-cancel-sub">
-                <i class="fas fa-times"></i>
-            </button>
-        </td>
-    `);
+                    <td>${row.find('td:first').text()}</td>
+                    <td><input type="text" class="form-control form-control-sm" value="${nama}"></td>   
+                    <td>
+                        <select class="form-control form-control-sm">
+                            ${[1,2,3,4,5].map(i => 
+                                `<option value="${i}" ${i == nilai ? 'selected' : ''}>${i}</option>`
+                            ).join('')}
+                        </select>
+                    </td>
+                    <td><input type="text" class="form-control form-control-sm" value="${keterangan}"></td>
+                    <td>
+                        <button class="btn btn-sm btn-success btn-save-sub" data-id="${id}">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button class="btn btn-sm btn-secondary btn-cancel-sub">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </td>
+                `);
             });
 
             // Save edited sub kriteria
@@ -361,8 +348,6 @@
                     keterangan: row.find('td:eq(3) input').val(),
                     _method: 'PUT'
                 };
-
-                console.log('Saving:', data);
 
                 $.ajax({
                     url: '/admin/sub-kriterias/' + id,
@@ -380,40 +365,10 @@
                         table.ajax.reload(null, false);
                     },
                     error: function(xhr) {
-                        console.error('Error:', xhr.responseJSON);
                         Toast.fire({
                             icon: 'error',
                             title: 'Gagal menyimpan perubahan'
                         });
-                    }
-                });
-            });
-
-            // Save edited sub kriteria
-            $(document).on('click', '.btn-save-sub', function() {
-                const id = $(this).data('id');
-                const row = $(this).closest('tr');
-                const data = {
-                    nama: row.find('td:eq(1) input').val(),
-                    nilai: row.find('td:eq(2) select').val(),
-                    keterangan: row.find('td:eq(3) input').val(),
-                    _method: 'PUT'
-                };
-
-                $.ajax({
-                    url: '/admin/sub-kriterias/' + id,
-                    type: 'POST',
-                    data: data,
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        Toast.fire({
-                            icon: 'success',
-                            title: response.message
-                        });
-                        loadSubKriterias($('#current-kriteria-id').val());
-                        table.ajax.reload(null, false);
                     }
                 });
             });
