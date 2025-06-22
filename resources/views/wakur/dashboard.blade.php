@@ -26,45 +26,29 @@
     <section class="content">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-lg-4 col-6">
+                <div class="col-lg-6 col-6">
                     <div class="small-box bg-info">
                         <div class="inner">
                             <h3>{{ $totalGuru }}</h3>
-                            <p>Guru Tetap</p>
+                            <p>Total Guru</p>
                         </div>
                         <div class="icon">
                             <i class="ion ion-person-stalker"></i>
                         </div>
-                        <a href="{{ route('wakur.gurus.index') }}" class="small-box-footer">More info <i
-                                class="fas fa-arrow-circle-right"></i></a>
                     </div>
                 </div>
-                <div class="col-lg-4 col-6">
+                <div class="col-lg-6 col-6">
                     <div class="small-box bg-success">
                         <div class="inner">
-                            {{-- <h3>{{ $totalKriteria }}</h3> --}}
+                            <h3>{{ $totalKriteria }}</h3>
                             <p>Kriteria Aktif</p>
                         </div>
                         <div class="icon">
                             <i class="ion ion-stats-bars"></i>
                         </div>
-                        {{-- <a href="{{ route('admin.kriterias.index') }}" class="small-box-footer">More info <i
-                                class="fas fa-arrow-circle-right"></i></a> --}}
                     </div>
                 </div>
-                <div class="col-lg-4 col-6">
-                    <div class="small-box bg-warning">
-                        <div class="inner">
-                            {{-- <h3>{{ $totalUser }}</h3> --}}
-                            <p>User Terdaftar</p>
-                        </div>
-                        <div class="icon">
-                            <i class="ion ion-person-add"></i>
-                        </div>
-                        {{-- <a href="{{ route('admin.users.index') }}" class="small-box-footer">More info <i
-                                class="fas fa-arrow-circle-right"></i></a> --}}
-                    </div>
-                </div>
+
             </div>
             <div class="row">
                 <section class="col-lg connectedSortable">
@@ -72,7 +56,7 @@
                         <div class="card-header border-0">
                             <h3 class="card-title">
                                 <i class="fas fa-map-marker-alt mr-1"></i>
-                                Peta
+                                Peta SMK Global Cendekia
                             </h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-primary btn-sm daterange" title="Date range">

@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             KriteriaSeeder::class,
             GuruSeeder::class,
+            SubKriteriaSeeder::class
         ]);
     }
 }

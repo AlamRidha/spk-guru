@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Kepsek;
 
 use App\Http\Controllers\Controller;
 use App\Models\Guru;
+use App\Models\Kriteria;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -14,6 +15,7 @@ class DashboardController extends Controller
         return view('kepsek.dashboard', [
             'title' => 'Dashboard',
             'totalGuru' => Guru::count(),
+            'totalKriteria' => Kriteria::count(),
         ]);
     }
 }
