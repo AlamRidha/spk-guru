@@ -45,6 +45,11 @@ class User extends Authenticatable
         return $this->role === 'wakil_kurikulum';
     }
 
+    public function isGuru()
+    {
+        return $this->role === 'guru';
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

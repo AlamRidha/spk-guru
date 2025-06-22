@@ -36,14 +36,14 @@
                             <a href="{{ route('admin.users.index') }}"
                                 class="nav-link {{ Request::routeIs('admin.users.*') ? 'active' : '' }}">
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>Admin & Kepsek</p>
+                                <p>Akun User</p>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('admin.gurus.index') }}"
                                 class="nav-link {{ Request::routeIs('admin.gurus.*') ? 'active' : '' }}">
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>Guru</p>
+                                <p>Data Guru</p>
                             </a>
                         </li>
                     </ul>

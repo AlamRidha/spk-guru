@@ -69,6 +69,7 @@
                                 <option value="admin">Admin</option>
                                 <option value="kepsek">Kepala Sekolah</option>
                                 <option value="wakil_kurikulum">Wakil Kurikulum</option>
+                                <option value="guru">Guru</option>
                             </select>
                         </div>
                         <div class="form-group password-field">
@@ -110,11 +111,13 @@
                     },
                     {
                         data: 'email',
-                        name: 'email'
+                        name: 'email',
+                        orderable: false
                     },
                     {
                         data: 'role_formatted',
-                        name: 'role'
+                        name: 'role',
+                        orderable: false
                     },
                     {
                         data: 'action',

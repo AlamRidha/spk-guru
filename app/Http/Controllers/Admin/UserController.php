@@ -14,7 +14,8 @@ class UserController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $users = User::where('role', '!=', 'guru');
+            $users =  User::query();
+            // $users = User::where('role', '!=', 'guru');
 
             return datatables()->of($users)
                 ->addIndexColumn()
@@ -50,7 +51,7 @@ class UserController extends Controller
         $validatedData = $request->validate([
             'nama' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'role' => ['required', Rule::in(['admin', 'kepsek', 'wakil_kurikulum'])],
+            'role' => ['required', Rule::in(['admin', 'kepsek', 'wakil_kurikulum', 'guru'])],
             'password' => 'required|string|min:8|confirmed',
         ]);
 
