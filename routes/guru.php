@@ -6,14 +6,11 @@ use App\Http\Controllers\Guru\{
 };
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('guru')->name('guru.')->group(function () {
-    // Dashboard
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Profile
-    Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
+// Profile
+Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
+Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    // Lihat Hasil
-    Route::get('hasil', [DashboardController::class, 'hasil'])->name('hasil');
-});
+// Lihat Hasil
+Route::get('hasil', [DashboardController::class, 'hasil'])->name('hasil');

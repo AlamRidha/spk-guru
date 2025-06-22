@@ -16,7 +16,7 @@ Route::middleware('guest')->group(function () {
 
 // Authenticated Routes
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    // Route::get('/home', [HomeController::class, 'index'])->name('home');
 
     // Role-based Routing
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(base_path('routes/admin.php'));

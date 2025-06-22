@@ -341,3 +341,223 @@ class KriteriaController extends Controller
         return response()->json(['message' => 'Kriteria berhasil dihapus']);
     }
 }
+
+
+
+
+
+
+
+
+ // Hasil Optimasi
+    // public function getNormalizedWeights()
+    // {
+    //     $kriterias = Kriteria::select('id', 'nama', 'bobot')->get();
+    //     $totalBobot = $kriterias->sum('bobot');
+
+    //     $normalized = $kriterias->map(function ($kriteria, $index) use ($totalBobot) {
+    //         return [
+    //             'kode' => 'C' . ($index + 1),
+    //             'nama' => $kriteria->nama,
+    //             'bobot_asli' => (float)$kriteria->bobot,
+    //             'bobot_normalisasi' => $totalBobot > 0 ? (float)$kriteria->bobot / $totalBobot : '0.00000'
+    //         ];
+    //     });
+
+    //     return response()->json($normalized);
+    // }
+
+    // public function getOptimasi()
+    // {
+    //     try {
+    //         // 1. Ambil data normalisasi
+    //         $normalisasiResponse = $this->getNormalisasi()->getData();
+    //         $normalisasi = $normalisasiResponse->normalisasi;
+
+    //         // 2. Hitung bobot ternormalisasi
+    //         $weights = $this->getNormalizedWeights()->getData();
+    //         $bobot = collect($weights)->pluck('bobot_normalisasi')->toArray();
+
+    //         // 3. Hitung nilai optimasi
+    //         $optimasi = $this->hitungNilaiOptimasi($normalisasi, $bobot);
+
+    //         return view('kepsek.penilaians.optimasi', [
+    //             'title' => 'Perhitungan Nilai Optimasi',
+    //             'normalisasi' => $normalisasi,
+    //             'bobot' => $weights,
+    //             'optimasi' => $optimasi
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         Log::error('Error in getOptimasi: ' . $e->getMessage());
+    //         return back()->with('error', 'Gagal menghitung nilai optimasi');
+    //     }
+    // }
+
+    // private function hitungNilaiOptimasi($normalisasi, $bobot)
+    // {
+    //     $results = [];
+
+    //     foreach ($normalisasi as $row) {
+    //         $benefit = 0;
+    //         $cost = 0;
+
+    //         // Asumsi semua kriteria benefit (sesuaikan jika ada cost)
+    //         for ($i = 0; $i < count($bobot); $i++) {
+    //             $benefit += $row['nilai'][$i] * $bobot[$i];
+    //         }
+
+    //         $yi = $benefit - $cost; // Jika ada cost, kurangkan
+
+    //         $results[] = [
+    //             'no' => $row['no'],
+    //             'guru' => $row['guru'],
+    //             'benefit' => $benefit,
+    //             'cost' => $cost,
+    //             'yi' => $yi,
+    //             'detail_perhitungan' => $this->generateDetailPerhitungan($row, $bobot)
+    //         ];
+    //     }
+
+    //     // Urutkan dari Yi terbesar ke terkecil
+    //     usort($results, function ($a, $b) {
+    //         return $b['yi'] <=> $a['yi'];
+    //     });
+
+    //     return $results;
+    // }
+
+    // private function generateDetailPerhitungan($row, $bobot)
+    // {
+    //     $detail = "Yi = (";
+
+    //     // Hitung bagian benefit
+    //     $benefitParts = [];
+    //     for ($i = 0; $i < count($bobot); $i++) {
+    //         $benefitParts[] = sprintf("%.5f × %.5f", $row['nilai'][$i], $bobot[$i]);
+    //     }
+    //     $detail .= implode(" + ", $benefitParts) . ")";
+
+    //     // Jika ada cost akan ditambahkan di sini
+
+    //     $detail .= " = ";
+
+    //     // Hitung nilai masing-masing
+    //     $calcParts = [];
+    //     for ($i = 0; $i < count($bobot); $i++) {
+    //         $calcParts[] = number_format($row['nilai'][$i] * $bobot[$i], 5);
+    //     }
+    //     $detail .= "(" . implode(" + ", $calcParts) . ")";
+
+    //     // Jika ada cost akan dikurangkan di sini
+
+    //     $yi = array_sum($calcParts); // Total benefit - cost
+    //     $detail .= " = " . number_format($yi, 5);
+
+    //     return $detail;
+    // }
+
+
+
+
+
+    halaman normalisasi:
+    @extends('layouts.kepsek')
+
+@section('title', $title)
+
+@section('content')
+    <div class="container">
+        <h3>{{ $title }}</h3>
+
+        <!-- Tabel Matriks Awal -->
+        <h4 class="mt-4">Matriks Keputusan</h4>
+        <table class="table table-bordered">
+            <thead class="bg-light">
+                <tr>
+                    <th>No</th>
+                    <th>Alternatif</th>
+                    @for ($i = 1; $i <= $totalKriteria; $i++)
+                        <th>C{{ $i }}</th>
+                    @endfor
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($matriks as $row)
+                    <tr>
+                        <td>{{ $row['no'] }}</td>
+                        <td>{{ $row['guru'] }}</td>
+                        @foreach ($row['nilai'] as $nilai)
+                            <td>{{ $nilai }}</td>
+                        @endforeach
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+        <!-- Tabel Normalisasi -->
+        <h4 class="mt-4">Matriks Normalisasi</h4>
+        <table class="table table-bordered">
+            <thead class="bg-light">
+                <tr>
+                    <th>No</th>
+                    <th>Alternatif</th>
+                    @for ($i = 1; $i <= $totalKriteria; $i++)
+                        <th>
+                            C{{ $i }}<br>
+                            <small class="text-muted">√∑ =
+                                {{ number_format($normalisasi['sum_squares'][$i - 1], 5) }}</small>
+                        </th>
+                    @endfor
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($normalisasi['normalized'] as $row)
+                    <tr>
+                        <td>{{ $row['no'] }}</td>
+                        <td>{{ $row['guru'] }}</td>
+                        @foreach ($row['nilai'] as $nilai)
+                            <td>{{ number_format($nilai, 5) }}</td>
+                        @endforeach
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+        <!-- Penjelasan Perhitungan -->
+        <div class="card mt-4">
+            <div class="card-header bg-primary text-white">
+                <h5>Penjelasan Perhitungan</h5>
+            </div>
+            <div class="card-body">
+                @for ($i = 0; $i < $totalKriteria; $i++)
+                    <h6>Normalisasi Kolom C{{ $i + 1 }}</h6>
+                    <p>
+                        C{{ $i + 1 }} = √(
+                        @foreach ($matriks as $idx => $row)
+                            {{ $row['nilai'][$i] }}²{{ $idx < count($matriks) - 1 ? ' + ' : '' }}
+                        @endforeach
+                        ) =
+                        √{{ number_format(
+                            array_reduce(
+                                $matriks,
+                                function ($carry, $item) use ($i) {
+                                    return $carry + pow($item['nilai'][$i], 2);
+                                },
+                                0,
+                            ),
+                            2,
+                        ) }}
+                        = {{ number_format($normalisasi['sum_squares'][$i], 5) }}
+                    </p>
+                    <p class="mb-4">
+                        @foreach ($matriks as $idx => $row)
+                            X{{ $idx + 1 }},{{ $i + 1 }} =
+                            {{ $row['nilai'][$i] }}/{{ number_format($normalisasi['sum_squares'][$i], 5) }}
+                            = {{ number_format($row['nilai'][$i] / $normalisasi['sum_squares'][$i], 5) }}<br>
+                        @endforeach
+                    </p>
+                @endfor
+            </div>
+        </div>
+    </div>
+@endsection
