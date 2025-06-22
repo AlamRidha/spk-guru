@@ -22,7 +22,7 @@ class LoginController extends Controller
     {
         $credentials = $request->validate([
             'email' => 'required|email',
-            'password' => 'required|string|min:8'
+            'password' => 'required|string|min:3'
         ]);
 
         if (Auth::attempt($credentials, $request->filled('remember'))) {

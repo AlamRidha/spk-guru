@@ -14,6 +14,7 @@ class KriteriaSeeder extends Seeder
      */
     public function run(): void
     {
+        // Data untuk penilai kepsek
         Kriteria::create([
             'nama' => 'Moralitas',
             'bobot' => 2.0000,
@@ -21,10 +22,52 @@ class KriteriaSeeder extends Seeder
             'penilai' => 'kepsek'
         ]);
 
-        // Kriteria untuk Wakil Kurikulum
+        Kriteria::create([
+            'nama' => 'Kedisiplinan',
+            'bobot' => 3.0000,
+            'jenis' => 'benefit',
+            'penilai' => 'kepsek'
+        ]);
+
+        Kriteria::create([
+            'nama' => 'Tanggung Jawab',
+            'bobot' => 4.0000,
+            'jenis' => 'benefit',
+            'penilai' => 'kepsek'
+        ]);
+
+        Kriteria::create([
+            'nama' => 'Implementasi Pembelajaran',
+            'bobot' => 5.0000,
+            'jenis' => 'benefit',
+            'penilai' => 'kepsek'
+        ]);
+
+        // Data untuk penilai wakil_kurikulum
         Kriteria::create([
             'nama' => 'Pengalaman Mengajar',
             'bobot' => 2.0000,
+            'jenis' => 'benefit',
+            'penilai' => 'wakil_kurikulum'
+        ]);
+
+        Kriteria::create([
+            'nama' => 'Tingkat Pendidikan',
+            'bobot' => 3.0000,
+            'jenis' => 'benefit',
+            'penilai' => 'wakil_kurikulum'
+        ]);
+
+        Kriteria::create([
+            'nama' => 'Jumlah Mata Pelajaran Yang Diajarkan',
+            'bobot' => 4.0000,
+            'jenis' => 'benefit',
+            'penilai' => 'wakil_kurikulum'
+        ]);
+
+        Kriteria::create([
+            'nama' => 'Frekuensi Mengajar Perminggu',
+            'bobot' => 5.0000,
             'jenis' => 'benefit',
             'penilai' => 'wakil_kurikulum'
         ]);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Wakur;
 
 use App\Http\Controllers\Controller;
 use App\Models\Guru;
+use App\Models\Hasil;
 use App\Models\Kriteria;
 use App\Models\Penilaian;
 use Illuminate\Http\Request;
@@ -82,6 +83,34 @@ class RankingController extends Controller
             usort($results, function ($a, $b) {
                 return $b['yi'] <=> $a['yi'];
             });
+
+            // 6. Simpan hasil ranking
+            DB::beginTransaction();
+            try {
+                $tahun = now()->year;
+
+                Hasil::where('penilai_id', Auth::id())
+                    ->where('tahun_penilaian', $tahun)
+                    ->where('jenis_penilai', 'wakil_kurikulum')
+                    ->delete();
+
+                foreach ($results as $index => $result) {
+                    Hasil::create([
+                        'guru_id' => $result['id'],
+                        'penilai_id' => Auth::id(),
+                        'nilai_optimasi' => $result['yi'],
+                        'ranking' => $index + 1,
+                        'tahun_penilaian' => $tahun,
+                        'jenis_penilai' => 'wakil_kurikulum'
+                    ]);
+                }
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Gagal menyimpan ranking wakur: ' . $e->getMessage());
+                return back()->with('error', 'Gagal menyimpan hasil ranking');
+            }
 
             return view('wakur.ranking.index', [
                 'title' => 'Perangkingan MOORA',

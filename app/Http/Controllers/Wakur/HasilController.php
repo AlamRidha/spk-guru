@@ -37,6 +37,9 @@ class HasilController extends Controller
                 return $b['yi'] <=> $a['yi'];
             });
 
+            // 6. Simpan hasil ranking ke database
+            $this->simpanHasilRanking($optimasi);
+
             return view('wakur.hasils.index', [
                 'title' => 'Hasil Perhitungan MOORA',
                 'bobot' => $bobot,
@@ -46,6 +49,64 @@ class HasilController extends Controller
         } catch (\Exception $e) {
             Log::error('Error in HasilController@index: ' . $e->getMessage());
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Menyimpan hasil ranking ke tabel hasils
+     */
+    private function simpanHasilRanking($optimasi)
+    {
+        DB::beginTransaction();
+        try {
+            $tahun = now()->year;
+            $penilaiId = Auth::id();
+
+            // Hapus ranking lama untuk wakil_kurikulum di tahun ini
+            $deletedRows = Hasil::where('penilai_id', $penilaiId)
+                ->where('tahun_penilaian', $tahun)
+                ->where('jenis_penilai', 'wakil_kurikulum')
+                ->delete();
+
+            Log::info("Deleted $deletedRows old records");
+
+            // Simpan ranking baru
+            foreach ($optimasi as $index => $row) {
+                $guru = Guru::where('nama', $row['guru'])->first();
+
+                if (!$guru) {
+                    Log::error("Guru tidak ditemukan: " . $row['guru']);
+                    continue;
+                }
+
+                $hasil = Hasil::create([
+                    'guru_id' => $guru->id,
+                    'penilai_id' => $penilaiId,
+                    'nilai_optimasi' => $row['yi'],
+                    'ranking' => $index + 1,
+                    'tahun_penilaian' => $tahun,
+                    'jenis_penilai' => 'wakil_kurikulum'
+                ]);
+
+                if (!$hasil) {
+                    Log::error("Gagal menyimpan data untuk guru: " . $row['guru']);
+                    throw new \Exception("Gagal menyimpan data ranking");
+                }
+            }
+
+            DB::commit();
+
+            // Verifikasi data tersimpan
+            $savedCount = Hasil::where('penilai_id', $penilaiId)
+                ->where('tahun_penilaian', $tahun)
+                ->where('jenis_penilai', 'wakil_kurikulum')
+                ->count();
+
+            Log::info("Jumlah data tersimpan: $savedCount");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal menyimpan ranking wakil kurikulum: ' . $e->getMessage());
+            throw new \Exception('Gagal menyimpan hasil ranking wakil kurikulum');
         }
     }
 

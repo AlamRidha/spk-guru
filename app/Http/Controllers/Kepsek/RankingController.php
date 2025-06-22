@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Kepsek;
 
 use App\Http\Controllers\Controller;
 use App\Models\Guru;
+use App\Models\Hasil;
 use App\Models\Kriteria;
 use App\Models\Penilaian;
 use Illuminate\Http\Request;
@@ -83,10 +84,75 @@ class RankingController extends Controller
                 return $b['yi'] <=> $a['yi'];
             });
 
-            return view('kepsek.ranking.index', [
+            // 6. Simpan hasil ranking ke database - TANPA SERVICE
+            DB::beginTransaction();
+            try {
+                $tahun = now()->year;
+                $penilaiId = Auth::id();
+
+                // Debug: Tampilkan data yang akan disimpan
+                Log::info('Data yang akan disimpan:', [
+                    'tahun' => $tahun,
+                    'penilai_id' => $penilaiId,
+                    'jumlah_results' => count($results),
+                    'sample_data' => $results[0] ?? null
+                ]);
+
+                // Hapus ranking lama untuk kepsek di tahun ini
+                $deleted = Hasil::where('penilai_id', $penilaiId)
+                    ->where('tahun_penilaian', $tahun)
+                    ->where('jenis_penilai', 'kepsek')
+                    ->delete();
+
+                Log::info("Jumlah data dihapus: $deleted");
+
+                // Simpan ranking baru
+                foreach ($results as $index => $result) {
+                    $hasil = Hasil::create([
+                        'guru_id' => $result['id'],
+                        'penilai_id' => $penilaiId,
+                        'nilai_optimasi' => $result['yi'],
+                        'ranking' => $index + 1,
+                        'tahun_penilaian' => $tahun,
+                        'jenis_penilai' => 'kepsek'
+                    ]);
+
+                    if (!$hasil->exists) {
+                        Log::error("Gagal menyimpan data untuk guru_id: {$result['id']}");
+                        throw new \Exception("Gagal menyimpan data ranking");
+                    }
+                }
+
+                DB::commit();
+
+                // Verifikasi data tersimpan
+                $savedCount = Hasil::where('penilai_id', $penilaiId)
+                    ->where('tahun_penilaian', $tahun)
+                    ->where('jenis_penilai', 'kepsek')
+                    ->count();
+
+                Log::info("Jumlah data tersimpan: $savedCount");
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Gagal menyimpan ranking kepsek: ' . $e->getMessage());
+                return back()->with('error', 'Gagal menyimpan hasil ranking');
+            }
+
+            // Siapkan data bobot untuk view
+            $bobot = $kriterias->map(function ($kriteria) use ($weights) {
+                return (object) [
+                    'kode' => 'C' . $kriteria->id,
+                    'nama' => $kriteria->nama,
+                    'jenis' => $kriteria->jenis,
+                    'bobot_asli' => $kriteria->bobot,
+                    'bobot_normalisasi' => $weights[$kriteria->id]['bobot']
+                ];
+            });
+
+            return view('kepsek.hasils.index', [
                 'title' => 'Perangkingan MOORA',
                 'ranking' => $results,
-                'weights' => $weights,
+                'bobot' => $bobot,
                 'kriterias' => $kriterias
             ]);
         } catch (\Exception $e) {
