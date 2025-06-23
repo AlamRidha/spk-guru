@@ -84,6 +84,7 @@
                         <h5 class="card-title mb-0">Contoh Perhitungan Manual</h5>
                     </div>
                     <div class="card-body">
+
                         @foreach (array_slice($optimasi, 0, 3) as $row)
                             <div class="mb-3">
                                 <h6>Alternatif {{ $row['no'] }} ({{ $row['guru'] }})</h6>

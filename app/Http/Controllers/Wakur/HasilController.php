@@ -112,21 +112,24 @@ class HasilController extends Controller
 
     private function getBobotKriteria()
     {
-        return Kriteria::where('penilai', 'wakil_kurikulum')
+        $kriterias = Kriteria::where('penilai', 'wakil_kurikulum')
             ->orderBy('id')
-            ->get()
-            ->map(function ($item, $index) {
-                $totalBobot = Kriteria::where('penilai', 'wakil_kurikulum')->sum('bobot');
+            ->get();
 
-                return (object)[
-                    'kode' => "C" . $index + 1,
-                    'nama' => $item->nama,
-                    'jenis' => $item->jenis,
-                    'bobot_asli' => $item->bobot,
-                    'bobot_normalisasi' => $totalBobot > 0 ? $item->bobot / $totalBobot : 0
-                ];
-            })
-            ->toArray();
+
+        $totalBobot = $kriterias->sum('bobot');
+
+        return $kriterias->map(function ($item, $index) use ($totalBobot) {
+            return (object)[
+                'kode' => "C" . ($index + 1),
+                'nama' => $item->nama,
+                'jenis' => $item->jenis,
+                'bobot_asli' => $item->bobot,
+                'bobot_normalisasi' => $totalBobot > 0 ? $item->bobot / $totalBobot : 0
+            ];
+        })->toArray();
+
+        Log::info('Bobot Kriteria:', $bobot);
     }
 
     private function getMatriksData()
@@ -161,6 +164,8 @@ class HasilController extends Controller
             $matriks[] = $row;
         }
 
+        Log::info('Matriks Data:', $matriks);
+
         return [
             'matriks' => $matriks,
             'total_kriteria' => $kriteriaDinilai->count()
@@ -169,18 +174,21 @@ class HasilController extends Controller
 
     private function hitungNormalisasi($matriks, $totalKriteria)
     {
+        // Hitung sum of squares untuk setiap kriteria
         $sumSquares = array_fill(0, $totalKriteria, 0);
 
-        // Hitung sum of squares untuk setiap kriteria
         foreach ($matriks as $row) {
             for ($i = 0; $i < $totalKriteria; $i++) {
-                $nilai = $row['nilai'][$i] ?? 0;
-                $sumSquares[$i] += pow($nilai, 2);
+                if (isset($row['nilai'][$i])) {
+                    $sumSquares[$i] += pow($row['nilai'][$i], 2);
+                }
             }
         }
 
-        // Hitung akar kuadrat
-        $sumSquares = array_map('sqrt', $sumSquares);
+        // Hitung akar kuadrat dengan pembulatan
+        $sumSquares = array_map(function ($val) {
+            return sqrt($val);
+        }, $sumSquares);
 
         // Normalisasi matriks
         $normalized = [];
@@ -193,12 +201,15 @@ class HasilController extends Controller
 
             for ($i = 0; $i < $totalKriteria; $i++) {
                 $nilai = $row['nilai'][$i] ?? 0;
-                $divisor = $sumSquares[$i] ?: 1; // Hindari division by zero
-                $normalizedRow['nilai'][$i] = $nilai / $divisor;
+                $divisor = $sumSquares[$i] ?? 1;
+                $normalizedRow['nilai'][$i] = $divisor != 0 ? $nilai / $divisor : 0;
             }
 
             $normalized[] = $normalizedRow;
         }
+
+        Log::info('Sum Squares:', $sumSquares);
+        Log::info('Normalized Data:', $normalized);
 
         return [
             'normalized' => $normalized,
@@ -215,33 +226,33 @@ class HasilController extends Controller
             $detailParts = [];
 
             foreach ($row['nilai'] as $i => $xij) {
-                $kriteria = $bobot[$i] ?? null;
-                if (!$kriteria) continue;
+                if (!isset($bobot[$i])) continue;
 
+                $kriteria = $bobot[$i];
                 $weight = $kriteria->bobot_normalisasi;
-                $operator = '+';
 
-                if ($kriteria->jenis == 'benefit') {
-                    $yi += $xij * $weight;
-                } else {
+                if ($kriteria->jenis == 'cost') {
                     $yi -= $xij * $weight;
-                    $operator = '-';
+                    $detailParts[] = sprintf(" - (%.5f × %.5f)", $xij, $weight);
+                } else {
+                    $yi += $xij * $weight;
+                    $detailParts[] = sprintf(" + (%.5f × %.5f)", $xij, $weight);
                 }
-
-                $detailParts[] = sprintf(
-                    "%s(%.5f × %.5f)",
-                    $operator,
-                    $xij,
-                    $weight
-                );
             }
 
             $results[] = [
                 'no' => $row['no'],
                 'guru' => $row['guru'],
                 'yi' => $yi,
-                'detail_perhitungan' => 'Yi = ' . implode(' ', $detailParts) . ' = ' . number_format($yi, 5)
+                'detail_perhitungan' => 'Yi =' . implode('', $detailParts) . ' = ' . number_format($yi, 5)
             ];
+        }
+
+        Log::info("Perhitungan Yi untuk {$row['guru']}:");
+        foreach ($row['nilai'] as $i => $xij) {
+            if (!isset($bobot[$i])) continue;
+            $kriteria = $bobot[$i];
+            Log::info("C" . ($i + 1) . " ({$kriteria->jenis}): {$xij} × {$kriteria->bobot_normalisasi}");
         }
 
         return $results;
